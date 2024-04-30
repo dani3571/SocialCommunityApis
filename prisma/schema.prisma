@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model communties {
+  id_communties          Int         @id @default(autoincrement())
+  id_profile             Int
+  name_communties        String      @db.VarChar(30)
+  description_communties String      @db.Text
+  image_communties       String      @db.VarChar(50)
+  verified_communties    Boolean
+  active_communties      Boolean
+  created_communties     DateTime    @db.DateTime(0)
+  updated_communties     DateTime    @db.DateTime(0)
+  profile                profile     @relation(fields: [id_profile], references: [id_profile], onDelete: Cascade, onUpdate: NoAction, map: "communties_ibfk_1")
+  followers              followers[] @ignore
+
+  @@index([id_profile], map: "id_profile")
+}
+
+model country {
+  id_country   Int       @id @default(autoincrement())
+  name_country String    @db.VarChar(20)
+  profile      profile[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model followers {
+  id            Int      @id @default(autoincrement())
+  id_communties     Int
+  id_profile        Int
+  created_followers DateTime   @db.DateTime(0)
+  communties        communties @relation(fields: [id_communties], references: [id_communties], onDelete: Cascade, map: "followers_ibfk_1")
+  profile           profile    @relation(fields: [id_profile], references: [id_profile], onDelete: Cascade, map: "followers_ibfk_2")
+
+  @@index([id_communties], map: "id_communties")
+  @@index([id_profile], map: "id_profile")
+  @@ignore
+}
+
+model profile {
+  id_profile           Int          @id @default(autoincrement())
+  name_profile         String       @db.VarChar(50)
+  day_birth_profile    DateTime     @db.Date
+  gender_profile       String       @db.VarChar(5)
+  id_country           Int
+  image_profile        String       @db.VarChar(20)
+  image_header_profile String       @db.VarChar(20)
+  description_profile  String       @db.VarChar(150)
+  phone_profile        Int
+  updated_profile      DateTime     @db.DateTime(0)
+  communties           communties[]
+  followers            followers[]  @ignore
+  country              country      @relation(fields: [id_country], references: [id_country], onDelete: Cascade, map: "profile_ibfk_1")
+  user                 user[]
+
+  @@index([id_country], map: "id_country")
+}
+
+model rol {
+  id_rol   Int    @id @default(autoincrement())
+  name_rol String @db.VarChar(10)
+  user     user[]
+}
+
+model user {
+  id_user       Int      @id @default(autoincrement())
+  id_rol        Int
+  id_profile    Int
+  name_user     String   @db.VarChar(50)
+  email_user    String   @db.VarChar(30)
+  password_user String   @db.Text
+  active_user   Boolean
+  created_user  DateTime @db.DateTime(0)
+  rol           rol      @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade, map: "user_ibfk_1")
+  profile       profile  @relation(fields: [id_profile], references: [id_profile], onDelete: Cascade, map: "user_ibfk_2")
+
+  @@index([id_profile], map: "id_profile")
+  @@index([id_rol], map: "id_rol")
+}
