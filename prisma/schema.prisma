@@ -31,7 +31,6 @@ model country {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model followers {
-  id            Int      @id @default(autoincrement())
   id_communties     Int
   id_profile        Int
   created_followers DateTime   @db.DateTime(0)
@@ -49,17 +48,19 @@ model profile {
   day_birth_profile    DateTime     @db.Date
   gender_profile       String       @db.VarChar(5)
   id_country           Int
+  id_user              Int
   image_profile        String       @db.VarChar(20)
   image_header_profile String       @db.VarChar(20)
   description_profile  String       @db.VarChar(150)
   phone_profile        Int
   updated_profile      DateTime     @db.DateTime(0)
   communties           communties[]
-  followers            followers[]  @ignore
+  followers            followers[] @ignore
   country              country      @relation(fields: [id_country], references: [id_country], onDelete: Cascade, map: "profile_ibfk_1")
-  user                 user[]
+  user                 user         @relation(fields: [id_user], references: [id_user], onDelete: Cascade, map: "profile_ibfk_2")
 
   @@index([id_country], map: "id_country")
+  @@index([id_user], map: "id_user")
 }
 
 model rol {
@@ -69,17 +70,15 @@ model rol {
 }
 
 model user {
-  id_user       Int      @id @default(autoincrement())
+  id_user       Int       @id @default(autoincrement())
   id_rol        Int
-  id_profile    Int
-  name_user     String   @db.VarChar(50)
-  email_user    String   @db.VarChar(30)
-  password_user String   @db.Text
+  name_user     String    @db.VarChar(50)
+  email_user    String    @db.VarChar(30)
+  password_user String    @db.Text
   active_user   Boolean
-  created_user  DateTime @db.DateTime(0)
-  rol           rol      @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade, map: "user_ibfk_1")
-  profile       profile  @relation(fields: [id_profile], references: [id_profile], onDelete: Cascade, map: "user_ibfk_2")
+  created_user  DateTime  @db.DateTime(0)
+  profile       profile[]
+  rol           rol       @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade, map: "user_ibfk_1")
 
-  @@index([id_profile], map: "id_profile")
   @@index([id_rol], map: "id_rol")
 }
