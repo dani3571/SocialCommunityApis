@@ -16,14 +16,34 @@ router.get('/user', async(req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 })
+router.get('/users-with-profiles', async (req, res) => {
+    try {
+        const usersWithProfiles = await prisma.user.findMany({
+            include: { profile: true }
+        });
+
+        res.json(usersWithProfiles);
+    } catch (error) {
+        console.error('Error al obtener usuarios con perfiles:', error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
 
 router.post('/user/create', async(req, res) => {
     try {
-        const { name_user, email_user, password_user, active_user, created_user, id_rol } = req.body
+        const { name_user, email_user, password_user, profile } = req.body;
+        
+        if (!profile || !profile.create || !profile.create.name_profile) {
+            return res.status(400).json({ error: 'El campo name_profile es obligatorio.' });
+        }
+
+        const { name_profile, day_birth_profile, gender_profile, id_country, image_profile, image_header_profile, description_profile, phone_profile } = profile.create;
+
+       // const { name_user, email_user, password_user, name_profile, day_birth_profile, gender_profile, id_country, image_profile, image_header_profile, description_profile, phone_profile } = req.body;
         const hashedPassword = await bcrypt.hash(password_user,10)
         const user_create = await prisma.user.create({
             data: {
-                name_user,
+                name_user,  
                 email_user,
                 password_user: hashedPassword,
                 active_user : true,
@@ -31,7 +51,23 @@ router.post('/user/create', async(req, res) => {
                 rol: { 
                     connect: { id_rol: 1 } 
                 },
+                profile: {
+                    create: {
+                        name_profile,
+                        day_birth_profile: new Date("2024-05-04"),
+                        gender_profile,
+                        id_country,
+                        image_profile,
+                        image_header_profile,
+                        description_profile,
+                        phone_profile,
+                        updated_profile: new Date()
+                    }
+                }
               },
+              include: {
+                profile: true
+            }
         });
         res.json(user_create);
     } catch (error) {
@@ -39,6 +75,8 @@ router.post('/user/create', async(req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 })
+
+
 
 router.put('/user/update/:id', async(req, res) => {
     const userId = parseInt(req.params.id);
