@@ -39,8 +39,7 @@ router.post('/user/create', async(req, res) => {
 
         const { name_profile, day_birth_profile, gender_profile, id_country, image_profile, image_header_profile, description_profile, phone_profile } = profile.create;
 
-       // const { name_user, email_user, password_user, name_profile, day_birth_profile, gender_profile, id_country, image_profile, image_header_profile, description_profile, phone_profile } = req.body;
-        const hashedPassword = await bcrypt.hash(password_user,10)
+       const hashedPassword = await bcrypt.hash(password_user,10)
         const user_create = await prisma.user.create({
             data: {
                 name_user,  
@@ -54,7 +53,7 @@ router.post('/user/create', async(req, res) => {
                 profile: {
                     create: {
                         name_profile,
-                        day_birth_profile: new Date("2024-05-04"),
+                        day_birth_profile,
                         gender_profile,
                         id_country,
                         image_profile,
@@ -75,42 +74,79 @@ router.post('/user/create', async(req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 })
-
-
-
-router.put('/user/update/:id', async(req, res) => {
-    const userId = parseInt(req.params.id);
-    const { name_user, email_user, password_user, active_user, created_user, id_rol } = req.body;
-
+router.put('/user/update/:userId', async (req, res) => {
     try {
-        const existingUser = await prisma.user.findUnique({
-            where: { id_user: userId }
-        });
+        const userId = parseInt(req.params.userId); // Obtenemos el ID del usuario de los parámetros de la URL
+        const { 
+            name_user,  
+            password_user, 
+            profile 
+        } = req.body;
 
-        if (!existingUser) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+        const { 
+            name_profile, 
+            day_birth_profile, 
+            gender_profile, 
+            id_country, 
+            image_profile, 
+            image_header_profile, 
+            description_profile, 
+            phone_profile 
+        } = profile.update;
+
+        const userProfile = await prisma.profile.findFirst({
+            where: {
+                id_user: userId
+            }
+        });
+        if (!userProfile) {
+            return res.status(404).json({ error: 'No se encontró el perfil asociado a este usuario.' });
         }
-        const dataToUpdate = {
+        const userProfileId = userProfile.id_profile
+        
+      
+        const updateData = {
             name_user,
+            password_user :  await bcrypt.hash(password_user, 10),
+            rol: { 
+                connect: { id_rol: 1 } // id_rol = User
+            },
+            profile: {
+                update: {
+                    where: {id_profile: userProfileId  }, 
+                    data: {
+                        name_profile,
+                        day_birth_profile,
+                        gender_profile,
+                        id_country,
+                        image_profile,
+                        image_header_profile,
+                        description_profile,
+                        phone_profile,
+                        updated_profile: new Date()
+                    }
+                }
+            }
         };
 
-        if (password_user) {
-            dataToUpdate.password_user =  await bcrypt.hash(password_user, 10);
-        }
-
-        const updatedUser = await prisma.user.update({
-            where: { id_user: userId },
-            data: dataToUpdate
+        const userUpdate = await prisma.user.update({
+            where: { id_user: userId }, 
+            data: updateData,
+            include: {
+                profile: true
+            }
         });
 
-
-      
-        res.json(updatedUser);
+        res.json(userUpdate); 
     } catch (error) {
         console.error('Error al actualizar usuario:', error);
         res.status(500).send('Error interno del servidor');
     }
 });
+
+
+
+
 
 router.put('/user/inactive/:id', async(req, res) => {
     const userId = parseInt(req.params.id);
@@ -190,7 +226,4 @@ router.post('/logout', async (req, res) => {
     res.clearCookie('token').json({ message: 'Logout exitoso' });
 });
 
-module.exports = router;
-
-// Exporta el enrutador
 module.exports = router;
