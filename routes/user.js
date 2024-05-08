@@ -33,11 +33,14 @@ router.post('/user/create', async(req, res) => {
     try {
         const { name_user, email_user, password_user, profile } = req.body;
         
-        if (!profile || !profile.create || !profile.create.name_profile) {
-            return res.status(400).json({ error: 'El campo name_profile es obligatorio.' });
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                email_user
+            }
+        });
+        if (existingUser) {
+            return res.status(400).json({ error: 'El usuario ya existe.' });
         }
-
-        const { name_profile, day_birth_profile, gender_profile, id_country, image_profile, image_header_profile, description_profile, phone_profile } = profile.create;
 
        const hashedPassword = await bcrypt.hash(password_user,10)
         const user_create = await prisma.user.create({
@@ -50,33 +53,37 @@ router.post('/user/create', async(req, res) => {
                 rol: { 
                     connect: { id_rol: 1 } 
                 },
-                profile: {
-                    create: {
-                        name_profile,
-                        day_birth_profile,
-                        gender_profile,
-                        id_country,
-                        image_profile,
-                        image_header_profile,
-                        description_profile,
-                        phone_profile,
-                        updated_profile: new Date()
-                    }
-                }
-              },
-              include: {
-                profile: true
-            }
+            },
+              
         });
+        await prisma.profile.create({
+            data:{
+              user: {
+                connect: {id_user: user_create.id_user}
+              },
+              name_profile: user_create.name_user,
+              day_birth_profile: new Date(),
+              description_profile: '',
+              gender_profile: '',
+              country: { 
+                connect: { id_country: 1 } 
+              },
+              image_header_profile: '',
+              image_profile: '',
+              phone_profile: 77777777,
+              updated_profile: new Date()
+            }
+        })
         res.json(user_create);
     } catch (error) {
         console.error('Error al crear usuario:', error);
         res.status(500).send('Error interno del servidor');
     }
 })
+
 router.put('/user/update/:userId', async (req, res) => {
     try {
-        const userId = parseInt(req.params.userId); // Obtenemos el ID del usuario de los parámetros de la URL
+        const userId = parseInt(req.params.userId);
         const { 
             name_user,  
             password_user, 
@@ -143,8 +150,6 @@ router.put('/user/update/:userId', async (req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 });
-
-
 
 
 
