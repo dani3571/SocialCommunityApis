@@ -7,6 +7,17 @@ const jwt = require('jsonwebtoken')
 const prisma = new PrismaClient()
 const router = express.Router()
 
+
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Obtiene todos los usuarios
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 router.get('/user', async(req, res) => {
     try {
         const users = await prisma.user.findMany();
@@ -16,6 +27,16 @@ router.get('/user', async(req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 })
+/**
+ * @swagger
+ * /users-with-profiles:
+ *   get:
+ *     summary: Obtiene todos los usuarios con sus perfiles
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 router.get('/users-with-profiles', async (req, res) => {
     try {
         const usersWithProfiles = await prisma.user.findMany({
@@ -28,7 +49,48 @@ router.get('/users-with-profiles', async (req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 });
-
+/**
+ * @swagger
+ * /user/create:
+ *   post:
+ *     summary: Crea un nuevo usuario
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name_user:
+ *                 type: string
+ *               email_user:
+ *                 type: string
+ *               password_user:
+ *                 type: string
+ *               profile:
+ *                 type: object
+ *                 properties:
+ *                   name_profile:
+ *                     type: string
+ *                   day_birth_profile:
+ *                     type: string
+ *                   gender_profile:
+ *                     type: string
+ *                   id_country:
+ *                     type: integer
+ *                   image_profile:
+ *                     type: string
+ *                   image_header_profile:
+ *                     type: string
+ *                   description_profile:
+ *                     type: string
+ *                   phone_profile:
+ *                     type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario creado exitosamente
+ */
 router.post('/user/create', async(req, res) => {
     try {
         const { name_user, email_user, password_user, profile } = req.body;
@@ -80,7 +142,53 @@ router.post('/user/create', async(req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 })
-
+/**
+ * @swagger
+ * /user/update/{userId}:
+ *   put:
+ *     summary: Actualiza un usuario existente
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del usuario a actualizar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name_user:
+ *                 type: string
+ *               password_user:
+ *                 type: string
+ *               profile:
+ *                 type: object
+ *                 properties:
+ *                   name_profile:
+ *                     type: string
+ *                   day_birth_profile:
+ *                     type: string
+ *                   gender_profile:
+ *                     type: string
+ *                   id_country:
+ *                     type: integer
+ *                   image_profile:
+ *                     type: string
+ *                   image_header_profile:
+ *                     type: string
+ *                   description_profile:
+ *                     type: string
+ *                   phone_profile:
+ *                     type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado exitosamente
+ */
 router.put('/user/update/:userId', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
@@ -152,7 +260,24 @@ router.put('/user/update/:userId', async (req, res) => {
 });
 
 
-
+/**
+ * @swagger
+ * /user/inactive/{id}:
+ *   put:
+ *     summary: Desactiva un usuario
+ *     tags: [Usuarios]
+ *     
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del usuario a desactivar
+ *     responses:
+ *       200:
+ *         description: Usuario desactivado exitosamente
+ */
 router.put('/user/inactive/:id', async(req, res) => {
     const userId = parseInt(req.params.id);
     try {
@@ -177,6 +302,24 @@ router.put('/user/inactive/:id', async(req, res) => {
         res.status(500).send('Error interno del servidor');
     }
 });
+
+/**
+ * @swagger
+ * /user/activate_user/{id}:
+ *   put:
+ *     summary: Activa un usuario desactivado
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del usuario a activar
+ *     responses:
+ *       200:
+ *         description: Usuario activado exitosamente
+ */
 router.put('/user/activate_user/:id', async(req, res) => {
     const userId = parseInt(req.params.id);
     try {
@@ -202,7 +345,28 @@ router.put('/user/activate_user/:id', async(req, res) => {
     }
 });
 
-
+/**
+ * @swagger
+ * /login:
+ * 
+ *   post:
+ *     summary: Inicia sesión de usuario
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email_user:
+ *                 type: string
+ *               password_user:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Sesión iniciada exitosamente
+ */
 router.post('/login', async (req, res) => {
     const { email_user, password_user } = req.body;
 
@@ -225,10 +389,19 @@ router.post('/login', async (req, res) => {
     }
 });
 
-
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: Cierra sesión de usuario
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: Sesión cerrada exitosamente
+ */
 router.post('/logout', async (req, res) => {
    
     res.clearCookie('token').json({ message: 'Logout exitoso' });
 });
 
-module.exports = router;
+module.exports = router; 

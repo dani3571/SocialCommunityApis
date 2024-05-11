@@ -17,6 +17,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
-    "prisma": "^5.13.0"
+    "prisma": "^5.13.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   }
 }
