@@ -1,14 +1,18 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 
 const dotenv = require("dotenv");
 dotenv.config();
 bodyParser = require("body-parser"),
 swaggerJsdoc = require("swagger-jsdoc"),
 swaggerUi = require("swagger-ui-express");
+
 // Middleware para analizar el cuerpo de la solicitud POST
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// CORS
+app.use(cors());
 
 // Importar las rutas desde user.js
 const userRoutes = require('./routes/user.js');

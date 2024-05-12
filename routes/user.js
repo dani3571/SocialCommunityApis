@@ -367,6 +367,8 @@ router.put('/user/activate_user/:id', async(req, res) => {
  *       200:
  *         description: Sesión iniciada exitosamente
  */
+
+/*
 router.post('/login', async (req, res) => {
     const { email_user, password_user } = req.body;
 
@@ -381,6 +383,29 @@ router.post('/login', async (req, res) => {
 
         // Genera JWT
         const token = jwt.sign({ userId: user.id_user }, 'secreto', { expiresIn: '1h' });
+
+        res.json({ token });
+    } catch (error) {
+        console.error('Error al iniciar sesión:', error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+*/
+
+router.post('/login', async (req, res) => {
+    const { email_user, password_user } = req.body;
+
+    try {
+        const user = await prisma.user.findFirst({
+            where: { email_user }
+        });
+
+        if (!user || !(await bcrypt.compare(password_user, user.password_user))) {
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+
+        // Generar token JWT
+        const token = jwt.sign({ userId: user.id_user, email_user: user.email_user, password_user: user.password_user }, 'secreta', { expiresIn: '1h' }); 
 
         res.json({ token });
     } catch (error) {
