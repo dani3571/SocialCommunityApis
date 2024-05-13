@@ -407,6 +407,8 @@ router.post('/login', async (req, res) => {
         // Generar token JWT
         const token = jwt.sign({ userId: user.id_user, email_user: user.email_user, password_user: user.password_user }, 'secreta', { expiresIn: '1h' }); 
 
+
+
         res.json({ token });
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
@@ -428,5 +430,87 @@ router.post('/logout', async (req, res) => {
    
     res.clearCookie('token').json({ message: 'Logout exitoso' });
 });
+
+
+/**
+ * @swagger
+ * /decode-token:
+ *   get:
+ *     summary: Decodificar un token JWT
+ *     description: Decodifica un token JWT y devuelve la información decodificada.
+ *     parameters:
+ *       - name: token
+ *         in: query
+ *         description: Token JWT a decodificar.
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Información del token decodificado.
+ *         schema:
+ *           type: object
+ *           properties:
+ *             userId:
+ *               type: integer
+ *               description: ID del usuario.
+ *             email_user:
+ *               type: string
+ *               description: Email del usuario.
+ *             password_user:
+ *               type: string
+ *               description: Contraseña del usuario.
+ *       401:
+ *         description: Token inválido.
+ */
+router.get('/decode-token', (req, res) => {
+    const token = req.query.token; // Obtenemos el token de la consulta
+    const secretKey = 'secreta';
+
+    if (!token) {
+        res.status(401).json({ error: 'Falta el token en la consulta' });
+        return;
+    }
+
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            console.error('Error al decodificar el token:', err);
+            res.status(401).json({ error: 'Token inválido' });
+        } else {
+            const { userId, email_user, password_user } = decoded;
+            res.json(decoded);
+        }
+    });
+});
+
+/*
+router.get('/decode-token', (req, res) => {
+    // Obtenemos el token de la solicitud (podría ser desde el header, query params, etc.)
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        res.status(401).json({ error: 'Falta el encabezado de autorización' });
+        return;
+    }
+
+    const token = authHeader.split(' ')[1];
+    const secretKey = 'secreta';
+    // Decodificar el token
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            console.error('Error al decodificar el token:', err);
+            res.status(401).json({ error: 'Token inválido' });
+        } else {
+            // El token es válido y ha sido decodificado con éxito
+            console.log('Información del token decodificado:', decoded);
+            // Accede a la información del token como un objeto
+            const { userId, email_user, password_user } = decoded;
+            console.log('ID de usuario:', userId);
+            console.log('Email de usuario:', email_user);
+            console.log('Contraseña de usuario:', password_user);
+
+            res.json(decoded); // Enviamos la información decodificada como respuesta
+        }
+    });
+});
+*/
 
 module.exports = router; 
