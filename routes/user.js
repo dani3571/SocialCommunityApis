@@ -404,8 +404,14 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
+        const username = await prisma.user.findUnique({
+            where: { id_user: user.id_user },
+            select: { name_user: true }
+        });
+
+
         // Generar token JWT
-        const token = jwt.sign({ userId: user.id_user, email_user: user.email_user, password_user: user.password_user }, 'secreta', { expiresIn: '1h' }); 
+        const token = jwt.sign({ userId: user.id_user, email_user: user.email_user, password_user: user.password_user,  name_user: username.name_user  }, 'secreta', { expiresIn: '1h' }); 
 
 
 
@@ -476,7 +482,7 @@ router.get('/decode-token', (req, res) => {
             console.error('Error al decodificar el token:', err);
             res.status(401).json({ error: 'Token inválido' });
         } else {
-            const { userId, email_user, password_user } = decoded;
+            const { userId, email_user, password_user, name_user } = decoded;
             res.json(decoded);
         }
     });
