@@ -415,7 +415,7 @@ router.post('/login', async (req, res) => {
 
 
 
-        res.json({ token });
+        res.json({ token, email_user, password_user, username});
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
         res.status(500).send('Error interno del servidor');
